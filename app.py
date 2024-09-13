@@ -2,6 +2,12 @@ from pyreact import pyreact, component, route
 from components.animated_text import animated_text as at
 from components.image import img
 
+##################################################################################################################
+# Once your app is fully set up, you can run this script to verify whether it's functioning correctly.
+#This will help ensure everything is working as expected before further development.
+##################################################################################################################
+
+
 
 @component
 def App(props):
