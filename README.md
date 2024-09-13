@@ -27,10 +27,10 @@ Pyreact is a Python-based web framework that combines server-side rendering with
 
 ## Installation
 
-To use Pyreact, you need to have Python installed on your system. You can then install Pyreact using pip:
+To use Pyreact, you need to have Python installed on your system. You can download this repository and install the required libraries using the following command:
+
 
 ```
-You can download this repository and install the required libraries using the following command:
 
 pip install fastapi uvicorn watchdog beautifulsoup4
 
