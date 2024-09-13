@@ -30,12 +30,15 @@ Pyreact is a Python-based web framework that combines server-side rendering with
 To use Pyreact, you need to have Python installed on your system. You can then install Pyreact using pip:
 
 ```
-pip install pyreact
+You can download this repository and install the required libraries using the following command:
+
+pip install fastapi uvicorn watchdog beautifulsoup4
+
 ```
 
 (Note: As this is a custom framework, you may need to package and distribute it separately)
 
-## Folder Structure
+##Folder Structure
 
 ```
 my_pyreact_app/
@@ -47,11 +50,9 @@ my_pyreact_app/
 │   ├── styles.css
 │   └── scripts.js
 └── components/
-    ├── Header.py
-    ├── Footer.py
-    ├── BlogPost.py
-    ├── CommentSection.py
-    └── NewPostForm.py
+    ├── component1.py
+    ├── component2.py
+    └── component3.py
 ```
 
 ## Quick Start
