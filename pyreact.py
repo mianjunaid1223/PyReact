@@ -72,7 +72,35 @@ class PyreactApp:
             component = Component(func)
             component.set_props(props)
             content = component.render()
-            return f'<div data-pyreact-component="{func.__name__}" data-component-id="{component.id}">{content}</div>'
+            soup = BeautifulSoup(content, 'html.parser')
+            
+            root_elements = soup.find_all(recursive=False)
+            
+            if len(root_elements) == 1:
+                # Single root element
+                root = root_elements[0]
+                root['data-pyreact-component'] = func.__name__
+                root['data-component-id'] = component.id
+                
+                # Append style attribute
+                existing_style = root.get('style', '')
+                root['style'] = f"{existing_style};" if existing_style else ''
+                
+                return str(soup)
+            else:
+                # Multiple root elements, wrap in a div
+                wrapper = soup.new_tag('div')
+                wrapper['data-pyreact-component'] = func.__name__
+                wrapper['data-component-id'] = component.id
+                wrapper['data-wraper'] = 'true'
+                
+                # Move all content into the wrapper
+                for element in root_elements:
+                    wrapper.append(element.extract())
+                
+                soup.append(wrapper)
+                return str(soup)
+        
         self.components[func.__name__] = wrapper
         return wrapper
 
@@ -152,10 +180,7 @@ class PyreactApp:
             with open(css_file, 'r') as file:
                 css = file.read()
             css_links += f'<style id="pyreact-style" data-id={self.static_timestamp}>{css}</style>'
-
-
         return css_links
-
 
     def create_app(self):
         app = FastAPI()
@@ -230,16 +255,6 @@ class PyreactApp:
                 if isinstance(content, (HTMLResponse, JSONResponse, RedirectResponse, FileResponse, StreamingResponse)):
                     return content
 
-                soup = BeautifulSoup(content, 'html.parser')
-                for component_tag in soup.find_all('component'):
-                    link = component_tag.get('data-link')
-                    props = json.loads(component_tag.get('data-props', '{}'))
-                    if link in self.routes:
-                        component_content = await self.render_route(link, "GET", request, **props)
-                        component_tag.replace_with(BeautifulSoup(str(component_content), 'html.parser'))
-
-                content = str(soup)
-
                 html_content = self.index_html.replace(
                     "<!-- CSS files will be dynamically inserted here -->",
                     self._get_css_links()
@@ -259,9 +274,25 @@ class PyreactApp:
                     return error_handler(e)
                 raise
 
+
+        @app.post("/api/load-component")
+        async def api_load_component(request: Request):
+            data = await request.json()
+            component_name = data.get('component_name')
+
+            if component_name is None:
+                return JSONResponse(content={"error": "component_name is required"}, status_code=400)
+
+            props = data.get('props', {})
+            
+            if component_name.startswith('/'):
+                content = await self.render_route(component_name, "GET", request, **props)
+            else:
+                content = await self.load_component(component_name, props)
+
+            return HTMLResponse(content=str(content))
         self.app = app
         return app
-
     async def send_file(self, file_data, file_name=None, content_type=None):
         if isinstance(file_data, str):
             file_data = file_data.encode('utf-8')
