@@ -20,12 +20,13 @@ class Pyreact {
         });
         this.loadCustomComponents();
     }
+
     retriggerCSS() {
         const links = document.querySelectorAll('link[rel="stylesheet"], style');
         links.forEach(link => {
           if (link.tagName === 'LINK') {
             const clonedLink = link.cloneNode();
-            clonedLink.href += '?v=' + Date.now(); // Append a cache-busting query parameter
+            clonedLink.href += '?v=' + Date.now();
             link.parentNode.replaceChild(clonedLink, link);
           } else if (link.tagName === 'STYLE') {
             const clonedStyle = document.createElement('style');
@@ -33,22 +34,11 @@ class Pyreact {
             link.parentNode.replaceChild(clonedStyle, link);
           }
         });
-      }
-    
-    
+    }
 
     loadCustomComponents() {
         const componentTags = document.querySelectorAll('component');
-        componentTags.forEach(async (tag) => {
-            const link = tag.getAttribute('data-link');
-            const props = JSON.parse(tag.getAttribute('data-props') || '{}');
-            const componentHtml = await this.loadComponent(link, props);
-            
-            tag.innerHTML = componentHtml;
-                    this.retriggerCSS();
-        
-            this.setupComponentEventListeners(tag);
-        });
+        componentTags.forEach(this.loadComponent.bind(this));
     }
 
     initializeComponent(name, element) {
@@ -80,7 +70,7 @@ class Pyreact {
     }
 
     observeDOM() {
-        const config = { attributes: true, childList: true, subtree: true };
+        const config = { attributes: true, childList: true, subtree: true, attributeFilter: ['data-link', 'data-props', 'data-replace', 'data-event-*'] };
         this.observer.observe(document.body, config);
     }
 
@@ -91,10 +81,11 @@ class Pyreact {
             } else if (mutation.type === 'childList') {
                 mutation.addedNodes.forEach(node => {
                     if (node.nodeType === Node.ELEMENT_NODE) {
-                        this.setupComponentEventListeners(node);
                         if (node.tagName.toLowerCase() === 'component') {
-                            this.loadCustomComponents();
+                            this.loadComponent(node);
                         }
+                        const components = node.querySelectorAll('component');
+                        components.forEach(this.loadComponent.bind(this));
                     }
                 });
             }
@@ -102,9 +93,10 @@ class Pyreact {
     }
 
     handleAttributeChange(element, attributeName) {
-        if (element.tagName.toLowerCase() === 'component' && 
-            (attributeName === 'data-link' || attributeName === 'data-props')) {
-            this.loadCustomComponents();
+        if (element.tagName.toLowerCase() === 'component') {
+            if (attributeName === 'data-link' || attributeName === 'data-props' || attributeName === 'data-replace') {
+                this.loadComponent(element);
+            }
         } else if (attributeName.startsWith('data-event-')) {
             const eventType = attributeName.replace('data-event-', '');
             const handlerName = element.getAttribute(`data-${eventType}-handler`);
@@ -115,6 +107,32 @@ class Pyreact {
                 });
             }
         }
+    }
+
+    async loadComponent(tag) {
+        const link = tag.getAttribute('data-link');
+        const props = JSON.parse(tag.getAttribute('data-props') || '{}');
+        const replace = tag.getAttribute('data-replace') === 'true';
+        
+        const componentHtml = await this.fetchComponent(link, props);
+        
+        if (replace) {
+            tag.outerHTML = componentHtml;
+        } else {
+            tag.innerHTML = componentHtml;
+        }
+        
+        this.retriggerCSS();
+        this.setupComponentEventListeners(tag.parentNode);
+    }
+
+    async fetchComponent(link, props) {
+        const response = await fetch('/api/load-component', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ component_name: link, props: props })
+        });
+        return await response.text();
     }
 
     async updateComponents() {
@@ -249,19 +267,6 @@ class Pyreact {
                 return await response.blob();
             default:
                 return response;
-        }
-    }
-
-    async loadComponent(link, props) {
-        try {
-            const response = await this.postToServer('/api/load-component', {
-                component_name: link,
-                props: props
-            }, 'text');
-            return response;
-        } catch (error) {
-            console.error('Error loading component:', error);
-            return '<p>Error loading component</p>';
         }
     }
 
