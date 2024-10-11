@@ -1,190 +1,328 @@
 # Pyreact Framework
 
-Pyreact is a lightweight Python-based web framework that seamlessly blends server-side rendering with client-side interactivity. Designed for simplicity and efficiency, Pyreact empowers developers to build dynamic and responsive web applications using Python.
+Pyreact is a Python-based web framework that combines server-side rendering with client-side interactivity. It allows for the creation of dynamic web applications using the simplicity of Python.
 
 ## Table of Contents
 
 1. [Features](#features)
-2. [Prerequisites](#prerequisites)
-3. [Installation](#installation)
-4. [Folder Structure](#folder-structure)
-5. [Quick Start](#quick-start)
-6. [Example App: Multi-feature Blog](#example-app-multi-feature-blog)
-7. [Detailed Feature Usage](#detailed-feature-usage)
-8. [Contributing](#contributing)
-9. [License](#license)
+2. [Installation](#installation)
+3. [Folder Structure](#folder-structure)
+4. [Quick Start](#quick-start)
+5. [Example App: Multi-feature Blog](#example-app-multi-feature-blog)
+6. [Detailed Feature Usage](#detailed-feature-usage)
 
 ## Features
 
-- **Component-Based Architecture**: Create reusable UI components with ease.
-- **Server-Side Rendering (SSR)**: Enhance SEO and initial load times with SSR.
-- **Client-Side Routing**: Navigate between pages without full page reloads.
-- **Automatic State Management**: Manage global and component-specific state effortlessly.
-- **Event Handling**: Handle user interactions and events seamlessly.
-- **Middleware and Hooks**: Execute custom logic before and after requests.
-- **Error Handling**: Customize responses for different error scenarios.
-- **Static File Serving**: Serve CSS, JavaScript, images, and other static assets.
-- **Build Mode with Hot Reloading**: Enjoy rapid development with automatic page refreshes on code changes.
-- **API Integration**: Create RESTful API endpoints easily.
-- **Component Importing**: Organize components in separate files for better maintainability.
-
-## Prerequisites
-
-Before getting started with Pyreact, ensure you have the following installed on your system:
-
-- Python 3.7 or higher: [Download Python](https://www.python.org/downloads/)
-- pip: Python package installer (comes bundled with Python)
-- Git (optional, for cloning the repository): [Download Git](https://git-scm.com/downloads)
+- Component-based architecture
+- Server-side rendering
+- Client-side routing
+- Automatic state management
+- Event handling
+- Middleware and hooks
+- Error handling
+- Static file serving
+- Build mode with hot reloading
+- API integration
+- Component importing from separate files
 
 ## Installation
 
-1. Clone the Repository:
-   ```
-   git clone https://github.com/yourusername/pyreact.git
-   cd pyreact
-   ```
+To use Pyreact, you need to have Python installed on your system. You can download this repository and install the required libraries using the following command:
 
-2. Install Required Libraries:
-   ```
-   pip install fastapi uvicorn watchdog beautifulsoup4
-   ```
 
-> Note: Since Pyreact is a custom framework, you may need to package and distribute it separately if you're planning to use it across multiple projects.
+```
 
-## Folder Structure
+pip install fastapi uvicorn watchdog beautifulsoup4
 
-Organize your Pyreact application with a clear and intuitive folder structure:
+```
+
+(Note: As this is a custom framework, you may need to package and distribute it separately)
+
+##Folder Structure
 
 ```
 my_pyreact_app/
 │
-├── app.py                # Main application file
-├── index.html            # Entry point HTML file
-├── pyreact.py            # Pyreact framework module
-├── static/               # Static assets
-│   ├── styles.css        # CSS styles
-│   └── scripts.js        # Client-side JavaScript
-└── components/           # Reusable components
-    ├── Header.py
-    ├── Footer.py
-    ├── BlogPost.py
-    ├── CommentSection.py
-    └── NewPostForm.py
+├── app.py
+├── index.html
+├── pyreact.py
+├── static/
+│   ├── styles.css
+│   └── scripts.js
+└── components/
+    ├── component1.py
+    ├── component2.py
+    └── component3.py
 ```
 
 ## Quick Start
 
-Follow these steps to create and run your first Pyreact application:
+1. Create a new directory for your project and set up the folder structure as shown above.
+2. Create your main `app.py` file:
 
-1. Set Up the Project Directory:
-   ```
-   mkdir my_pyreact_app
-   cd my_pyreact_app
-   ```
+```python
+from pyreact import pyreact, component, route
+from components.Header import Header
+from components.Footer import Footer
 
-2. Create the Folder Structure:
-   ```
-   mkdir static components
-   touch app.py index.html pyreact.py static/styles.css static/scripts.js
-   ```
+@component
+def App(props):
+    return f"""
+    {Header(title="My Pyreact App")}
+    <main>{props.get('children', 'Welcome to Pyreact!')}</main>
+    {Footer()}
+    """
 
-3. Create the `index.html` File:
-   ```html
-   <!DOCTYPE html>
-   <html lang="en">
-   <head>
-       <meta charset="UTF-8">
-       <title>Pyreact App</title>
-       <!-- CSS files will be dynamically inserted here -->
-   </head>
-   <body>
-       <div id="root">
-           <!-- Content will be dynamically inserted here -->
-       </div>
-       <script>
-           window.INITIAL_STATE = {};
-           // Your frontend JavaScript here
-       </script>
-       <script src="/static/scripts.js"></script>
-   </body>
-   </html>
-   ```
+@route("/")
+async def home(request):
+    return App(children="<h1>Hello, Pyreact!</h1>")
 
-4. Create the Main Application File (`app.py`):
-   ```python
-   from pyreact import pyreact, component, route
-   from components.Header import Header
-   from components.Footer import Footer
+app = pyreact.create_app()
 
-   @component
-   def App(props):
-       return f"""
-       {Header(title="My Pyreact App")}
-       <main>{props.get('children', 'Welcome to Pyreact!')}</main>
-       {Footer()}
-       """
+if __name__ == "__main__":
+    pyreact.set_mode("build") # or "use"
+    pyreact.run("app:app", host="127.0.0.1", port=8000, reload=True)
+```
 
-   @route("/")
-   async def home(request):
-       return App(children="<h1>Hello, Pyreact!</h1>")
+3. Run your app:
 
-   app = pyreact.create_app()
+```
+python app.py
+```
 
-   if __name__ == "__main__":
-       pyreact.set_mode("build")  # or "use" for production
-       pyreact.run(host="127.0.0.1", port=8000, reload=True)
-   ```
-
-5. Create Components:
-   
-   `components/Header.py`:
-   ```python
-   from pyreact import component
-
-   @component
-   def Header(props):
-       return f"""
-       <header>
-           <h1>{props.get('title', 'My Blog')}</h1>
-           <nav>
-               <a href="/" data-pyreact-link>Home</a>
-           </nav>
-       </header>
-       """
-   ```
-
-   `components/Footer.py`:
-   ```python
-   from pyreact import component
-
-   @component
-   def Footer(props):
-       return """
-       <footer>
-           <p>&copy; 2024 My Pyreact App</p>
-       </footer>
-       """
-   ```
-
-6. Run the Application:
-   ```
-   python app.py
-   ```
-
-   Open your browser and navigate to `http://127.0.0.1:8000` to see your Pyreact app in action!
+Visit `http://127.0.0.1:8000` in your browser to see your Pyreact app in action!
 
 ## Example App: Multi-feature Blog
 
-For a more comprehensive example showcasing Pyreact's capabilities, refer to the [Example App: Multi-feature Blog](#example-app-multi-feature-blog) section in the full documentation.
+Let's create a blog application that demonstrates all the features of Pyreact. We'll create the main `app.py` file and several components.
+
+### app.py
+
+```python
+from pyreact import pyreact, component, route, send_file, throw
+from components.Header import Header
+from components.Footer import Footer
+from components.BlogPost import BlogPost
+from components.CommentSection import CommentSection
+from components.NewPostForm import NewPostForm
+
+# Global state for our blog posts and comments
+pyreact.global_state['blog_posts'] = [
+    {"id": 1, "title": "First Post", "content": "This is our first blog post.", "comments": []},
+    {"id": 2, "title": "Second Post", "content": "This is our second blog post.", "comments": []},
+]
+
+@component
+def App(props):
+    return f"""
+    {Header(title="My Pyreact Blog")}
+    <main id="content">
+        {props.get('children', '<p>Welcome to my blog!</p>')}
+    </main>
+    {Footer()}
+    """
+
+@route("/")
+async def home(request):
+    posts = pyreact.global_state['blog_posts']
+    post_list = "".join([f'<li><a href="/post/{post["id"]}" data-pyreact-link>{post["title"]}</a></li>' for post in posts])
+    return App(children=f"""
+        <h2>Recent Posts</h2>
+        <ul>{post_list}</ul>
+        <component data-link="/new-post-form" data-props='{{}}'></component>
+    """)
+
+@route("/post/<post_id>")
+async def blog_post(request, post_id):
+    post = next((p for p in pyreact.global_state['blog_posts'] if p['id'] == int(post_id)), None)
+    if post:
+        return App(children=f"""
+            {BlogPost(post=post)}
+            {CommentSection(post_id=post['id'])}
+        """)
+    else:
+        return throw(content="<p>404 - Post not found</p>", status_code=404)
+
+@route("/new-post-form")
+async def new_post_form(request):
+    return NewPostForm()
+
+@route("/api/posts", methods=["GET", "POST"])
+async def api_posts(request):
+    if request.method == "GET":
+        return pyreact.jsonify(posts=pyreact.global_state['blog_posts'])
+    elif request.method == "POST":
+        data = await request.json()
+        new_post = {
+            "id": len(pyreact.global_state['blog_posts']) + 1,
+            "title": data['title'],
+            "content": data['content'],
+            "comments": []
+        }
+        pyreact.global_state['blog_posts'].append(new_post)
+        return pyreact.jsonify(status="success", post=new_post)
+
+@pyreact.event_handler("addPost")
+def add_post(component_id, title, content):
+    new_post = {
+        "id": len(pyreact.global_state['blog_posts']) + 1,
+        "title": title,
+        "content": content,
+        "comments": []
+    }
+    pyreact.global_state['blog_posts'].append(new_post)
+    return {"newPost": new_post}
+
+@pyreact.event_handler("addComment")
+def add_comment(component_id, post_id, comment):
+    post = next((p for p in pyreact.global_state['blog_posts'] if p['id'] == int(post_id)), None)
+    if post:
+        post['comments'].append(comment)
+        return {"updatedComments": post['comments']}
+    return {"error": "Post not found"}
+
+@pyreact.before_request
+def before_request():
+    print("Processing request...")
+
+@pyreact.after_request
+def after_request(response):
+    print("Request processed.")
+    return response
+
+@pyreact.errorhandler(404)
+def not_found_error(error):
+    return throw(content="<p>404 - Not Found</p>", status_code=404)
+
+app = pyreact.create_app()
+pyreact.add_global_css_file("/static/styles.css")
+
+if __name__ == "__main__":
+    pyreact.set_mode("build")
+    pyreact.set_static_dir("static")
+    pyreact.run("app:app", host="127.0.0.1", port=8000, reload=True)
+```
+
+### components/Header.py
+
+```python
+from pyreact import component
+
+@component
+def Header(props):
+    return f"""
+    <header>
+        <h1>{props.get('title', 'My Blog')}</h1>
+        <nav>
+            <a href="/" data-pyreact-link>Home</a>
+        </nav>
+    </header>
+    """
+```
+
+### components/Footer.py
+
+```python
+from pyreact import component
+
+@component
+def Footer(props):
+    return """
+    <footer>
+        <p>&copy; 2024 My Pyreact Blog</p>
+    </footer>
+    """
+```
+
+### components/BlogPost.py
+
+```python
+from pyreact import component
+
+@component
+def BlogPost(props):
+    post = props['post']
+    return f"""
+    <article>
+        <h2>{post['title']}</h2>
+        <p>{post['content']}</p>
+    </article>
+    """
+```
+
+### components/CommentSection.py
+
+```python
+from pyreact import component
+
+@component
+def CommentSection(props):
+    post_id = props['post_id']
+    return f"""
+    <section id="comments">
+        <h3>Comments</h3>
+        <ul id="comment-list"></ul>
+        <form id="comment-form" onsubmit="return false;">
+            <textarea id="comment-text" required></textarea>
+            <button onclick="addComment({post_id})">Add Comment</button>
+        </form>
+    </section>
+    <script>
+    function addComment(postId) {{
+        const commentText = document.getElementById('comment-text').value;
+        pyreact.triggerEvent('addComment', postId, commentText).then((result) => {{
+            if (result.updatedComments) {{
+                const commentList = document.getElementById('comment-list');
+                commentList.innerHTML = result.updatedComments.map(comment => `<li>${{comment}}</li>`).join('');
+                document.getElementById('comment-text').value = '';
+            }}
+        }});
+    }}
+    </script>
+    """
+```
+
+### components/NewPostForm.py
+
+```python
+from pyreact import component
+
+@component
+def NewPostForm(props):
+    return """
+    <form id="new-post-form" onsubmit="return false;">
+        <h3>Create New Post</h3>
+        <input type="text" id="post-title" placeholder="Title" required>
+        <textarea id="post-content" placeholder="Content" required></textarea>
+        <button onclick="addPost()">Create Post</button>
+    </form>
+    <script>
+    function addPost() {
+        const title = document.getElementById('post-title').value;
+        const content = document.getElementById('post-content').value;
+        pyreact.triggerEvent('addPost', title, content).then((result) => {
+            if (result.newPost) {
+                alert('New post created!');
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-content').value = '';
+            }
+        });
+    }
+    </script>
+    """
+```
 
 ## Detailed Feature Usage
 
-For detailed information on how to use specific features of Pyreact, please refer to the full documentation.
+1. **Components**: Create reusable components using the `@component` decorator.
+2. **Routing**: Define routes using the `@route` decorator.
+3. **State Management**: Use `pyreact.global_state` to manage application state.
+4. **Event Handling**: Create event handlers with `@pyreact.event_handler`.
+5. **Component Tag**: Use `<component>` tags to dynamically load components.
+6. **Middleware and Hooks**: Use `@pyreact.before_request` and `@pyreact.after_request` for request processing.
+7. **Error Handling**: Define custom error handlers with `@pyreact.errorhandler`.
+8. **Static Files**: Serve static files from the `static` directory.
+9. **Build Mode**: Enable hot reloading with `pyreact.set_mode("build")`.
+10. **API Integration**: Create API endpoints using the `@route` decorator with different HTTP methods.
 
-## Contributing
-
-We welcome contributions to the Pyreact Framework! Please read our contributing guidelines before submitting pull requests.
-
-## License
-
-Pyreact is released under the [MIT License](https://opensource.org/licenses/MIT).
+This README provides a comprehensive guide to using the Pyreact framework, including an example blog application that demonstrates all of its features. Users can use this as a starting point to build their own Pyreact applications.
