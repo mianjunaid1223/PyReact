@@ -1,5 +1,8 @@
 # PyReact
 
+[![Year Built](https://img.shields.io/badge/Year%20Built-2024-blue.svg)](#)
+
+
 <div align="center">
 
 ![PyReact Logo](static/PyReact-logo.png)
@@ -22,6 +25,7 @@ PyReact is a lightweight Python web framework that implements React-inspired com
 
 | Capability | Technical Scope |
 |---|---|
+| Year Built | 2024 |
 | Component Architecture | Reusable functional UI elements created via the @component decorator |
 | FastAPI Backend | ASGI foundation supporting async route definitions, request validation, and OpenAPI schemas |
 | Real-Time Updates | Built-in WebSocket channel providing instant client reloads on code modifications |
